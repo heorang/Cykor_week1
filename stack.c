@@ -73,31 +73,47 @@ void print_stack()
     printf("================================\n\n");
 }
 
+void push (int *args, char **arg_names, int arg_size, int *locals, char **local_names, int local_size, const char *func_name)
+{
+    for (int i = arg_size -1 ; i >= 0 ; i--)
+    {
+        call_stack[SP] = args[i];
+        strcpy(stack_info[SP], arg_names[i]);
+        SP++;
+    }
+
+    call_stack[SP] = -1;
+    strcpy(stack_info[SP], "Return address");
+    SP++;
+
+    call_stack[SP] = -1;
+    sprintf(stack_info[SP], "%s SFP", func_name);
+    FP = SP;
+    SP++;
+
+    for (int j = 0; j < local_size ; j++)
+    {
+        call_stack[SP] = locals[j];
+        strcpy(stack_info[SP], local_names[j]);
+        SP++;
+    }
+
+
+}
 
 //func 내부는 자유롭게 추가해도 괜찮으나, 아래의 구조를 바꾸지는 마세요
 void func1(int arg1, int arg2, int arg3)
 {
     int var_1 = 100;
 
-    int args[]={arg1, arg2, arg3};
-    char args_name[][10]={"arg1", "arg2", "arg3"};
+    int args[] = {arg1, arg2, arg3};
+    char *arg_names[] = {"arg1", "arg2", "arg3"};
 
-    for (int j=2; -1 < j; j--)
-    {
-        call_stack[SP] = args[j];
-        strcpy(stack_info[SP], args_name[j]);
-        SP++;
-    }
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP], "Return address");
-    SP++;
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP],"func1 SFP");
-    FP = SP;
-    SP++;
-    call_stack[SP] = var_1;
-    strcpy(stack_info[SP],"var_1");
-    SP++;
+    int locals[] = {var_1};
+    char *local_names[] = {"var_1"};
+
+    push(args, arg_names, sizeof(args)/sizeof(int), locals, local_names, sizeof(locals)/sizeof(int), "func1");
+
     print_stack();
     func2(11, 13);
     // func2의 스택 프레임 제거 (함수 에필로그 + pop)
@@ -109,25 +125,14 @@ void func2(int arg1, int arg2)
 {
     int var_2 = 200;
 
-    int args_2[] = {arg1, arg2};
-    char args_2_name[][10] = {"arg1", "arg2"};
+    int args[] = {arg1, arg2};
+    char *args_name[] = {"arg1", "arg2"};
 
-    for (int j=1; -1 < j; j--)
-    {
-        call_stack[SP] = args_2[j];
-        strcpy(stack_info[SP], args_2_name[j]);
-        SP++;
-    }
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP],"Return address");
-    SP++;
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP], "func2 SFP");
-    FP = SP;
-    SP++;
-    call_stack[SP] = var_2
-    strcpy(stack_info[SP], "var_2");
-    SP++;
+    int locals[] = {var_2};
+    char *local_names[] = {"var_2"};
+
+    push(args, arg_names, sizeof(args)/sizeof(int), locals, local_names, sizeof(locals)/sizeof(int), "func2");
+
     print_stack();
     func3(77);
     // func3의 스택 프레임 제거 (함수 에필로그 + pop)
@@ -140,24 +145,14 @@ void func3(int arg1)
     int var_3 = 300;
     int var_4 = 400;
 
-    int vars[] = {var_3, var_4};
-    char vars_name[][10] = {"var_3", "var_4"};
-    call_stack[SP] = arg1;
-    strcpy(stack_info[SP], "arg1");
-    SP++;
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP], "Return address");
-    SP++;
-    call_stack[SP] = -1;
-    strcpy(stack_info[SP], "func3 SFP");
-    FP = SP;
-    SP++;
-    for (int k=1; -1 < k; k--)
-    {
-        call_stack[SP] = vars[k];
-        strcpy(stack_info[SP], vars_name[k]);
-        SP++;
-    }
+    int args[] = {arg1};
+    char *args_name[] = {"arg1"};
+
+    int locals[] = {var_3, var_4};
+    char *locals_names[] = {"var_3", "var_4"};
+    
+    push(args, arg_names, sizeof(args)/sizeof(int), locals, local_names, sizeof(locals)/sizeof(int), "func3");
+
     // func3의 스택 프레임 형성 (함수 프롤로그 + push)
     print_stack();
 }
