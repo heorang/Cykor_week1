@@ -39,7 +39,6 @@ char    stack_info[STACK_SIZE][20];     // Call Stack 요소에 대한 설명을
 */
 int SP = -1;
 int FP = -1;
-int FP_stack[STACK_SIZE]; //각 함수의 FP를 저장하는 배열, 0으로 초기화
 
 void func1(int arg1, int arg2, int arg3);
 void func2(int arg1, int arg2);
@@ -63,8 +62,6 @@ void print_stack()
     {
         if (call_stack[i] != -1)
             printf("%d : %s = %d", i, stack_info[i], call_stack[i]);
-        else if (FP_stack[i] != -1 && FP_stack[i]!=0)
-            printf("%d : %s = %d", i, stack_info[i], FP_stack[i]);
         else
             printf("%d : %s", i, stack_info[i]);
         if (i == SP)
@@ -80,6 +77,7 @@ void print_stack()
 //매개변수 배열, 매개변수 이름 배열, 매개변수 개수, 지역변수 배열, 지역변수 이름 배열, 지역변수 개수, 함수 이름을 인자로 받아 stack에 쌓는 함수
 void push(int* args, char** arg_names, int arg_size, int* locals, char** local_names, int local_size, const char* func_name)
 {
+    //매개변수 push(역순)
     for (int i = arg_size - 1; i >= 0; i--)
     {
         SP++;
@@ -87,42 +85,46 @@ void push(int* args, char** arg_names, int arg_size, int* locals, char** local_n
         strcpy(stack_info[SP], arg_names[i]);
     }
 
+    //Return address push
     SP++;
     call_stack[SP] = -1;
     strcpy(stack_info[SP], "Return address");
 
+    //SFP push (call_stack에서의 index가 그대로 저장)
     SP++;
-    call_stack[SP] = -1;
+    call_stack[SP] = FP;
     sprintf(stack_info[SP], "%s SFP", func_name);
-    FP_stack[SP] = FP;
     FP = SP;
 
+    //지역변수 push(순차)
     for (int j = 0; j < local_size; j++)
     {
         SP++;
         call_stack[SP] = locals[j];
         strcpy(stack_info[SP], local_names[j]);
     }
-
-
 }
 
-//매개변수 개수와 지역변수 개수를 받아 그것에 2를 더한 만큼을 stack에서 비우고 초기화하는 함수
+//매개변수 개수와 지역변수 개수를 받아 지역변수의 개수만큼 초기화 한 다음 FP를 이전 것으로 복원한 다음 다시 매개변수+2(SFP&Return address)만큼 초기화
 void pop(int arg_size, int local_size)
 {
-    int total_pop = arg_size + local_size + 2;
-
-    for (int k = 0; k < total_pop; k++)
+    //지역변수 pop
+    for (int k = 0; k < local_size; k++)
     {
         call_stack[SP] = -1;
         strcpy(stack_info[SP], "");
         SP--;
+    }
+    
+    //SFP를 이전의 것으로 복원
+    FP = call_stack[SP];
 
-        if (FP_stack[SP] != 0)
-        {
-            FP = FP_stack[SP];
-            FP_stack[SP] = 0;
-        }
+    //SFP + Return address + 매개변수 pop
+    for (int r = 0; r < arg_size+2; r++)
+    {
+        call_stack[SP] = -1;
+        strcpy(stack_info[SP], "");
+        SP--;
     }
 }
 
