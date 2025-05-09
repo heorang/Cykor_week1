@@ -24,6 +24,7 @@
 #include <string.h>
 #define STACK_SIZE 50 // 최대 스택 크기
 
+
 int     call_stack[STACK_SIZE];         // Call Stack을 저장하는 배열
 char    stack_info[STACK_SIZE][20];     // Call Stack 요소에 대한 설명을 저장하는 배열
 
@@ -37,6 +38,7 @@ char    stack_info[STACK_SIZE][20];     // Call Stack 요소에 대한 설명을
 */
 int SP = -1; 
 int FP = -1;
+int FP_stack[3]; //각 함수의 FP를 저장하는 배열
 
 void func1(int arg1, int arg2, int arg3);
 void func2(int arg1, int arg2);
@@ -73,6 +75,7 @@ void print_stack()
     printf("================================\n\n");
 }
 
+//매개변수 배열, 매개변수 이름 배열, 매개변수 개수, 지역변수 배열, 지역변수 이름 배열, 지역변수 개수, 함수 이름을 인자로 받아 stack에 쌓는 함수
 void push (int *args, char **arg_names, int arg_size, int *locals, char **local_names, int local_size, const char *func_name)
 {
     for (int i = arg_size -1 ; i >= 0 ; i--)
@@ -101,6 +104,21 @@ void push (int *args, char **arg_names, int arg_size, int *locals, char **local_
 
 }
 
+//매개변수 개수와 지역변수 개수를 받아 그것에 2를 더한 만큼을 stack에서 비우고 초기화하는 함수
+void pop (int arg_size, int local_size)
+{
+    int total_pop = arg_size + local_size + 2;
+
+    for (int k = 0 ; k < total_pop ; k++)
+    [
+        SP--;
+        call_stack[SP] = -1;
+        strcpy(stack_info[SP],"");
+    ]
+
+    FP = FP_stack[SP]
+}
+
 //func 내부는 자유롭게 추가해도 괜찮으나, 아래의 구조를 바꾸지는 마세요
 void func1(int arg1, int arg2, int arg3)
 {
@@ -116,7 +134,10 @@ void func1(int arg1, int arg2, int arg3)
 
     print_stack();
     func2(11, 13);
+
     // func2의 스택 프레임 제거 (함수 에필로그 + pop)
+    pop (sizeof(args)/sizeof(int), sizeof(locals)/sizeof(int));
+
     print_stack();
 }
 
@@ -135,7 +156,10 @@ void func2(int arg1, int arg2)
 
     print_stack();
     func3(77);
+
     // func3의 스택 프레임 제거 (함수 에필로그 + pop)
+    pop (sizeof(args)/sizeof(int), sizeof(locals)/sizeof(int));
+
     print_stack();
 }
 
@@ -154,6 +178,7 @@ void func3(int arg1)
     push(args, arg_names, sizeof(args)/sizeof(int), locals, local_names, sizeof(locals)/sizeof(int), "func3");
 
     // func3의 스택 프레임 형성 (함수 프롤로그 + push)
+    
     print_stack();
 }
 
