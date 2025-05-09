@@ -39,7 +39,7 @@ char    stack_info[STACK_SIZE][20];     // Call Stack 요소에 대한 설명을
 */
 int SP = -1;
 int FP = -1;
-int FP_stack[3]; //각 함수의 FP를 저장하는 배열
+int FP_stack[STACK_SIZE]; //각 함수의 FP를 저장하는 배열, 0으로 초기화
 
 void func1(int arg1, int arg2, int arg3);
 void func2(int arg1, int arg2);
@@ -63,13 +63,14 @@ void print_stack()
     {
         if (call_stack[i] != -1)
             printf("%d : %s = %d", i, stack_info[i], call_stack[i]);
+        else if (FP_stack[i] != -1 && FP_stack[i]!=0)
+            printf("%d : %s = %d", i, stack_info[i], FP_stack[i]);
         else
             printf("%d : %s", i, stack_info[i]);
-
         if (i == SP)
-            printf("    <=== [esp]\n");
+            printf("    <=== esp\n");
         else if (i == FP)
-            printf("    <=== [ebp]\n");
+            printf("    <=== ebp\n");
         else
             printf("\n");
     }
@@ -116,9 +117,13 @@ void pop(int arg_size, int local_size)
         call_stack[SP] = -1;
         strcpy(stack_info[SP], "");
         SP--;
-    }
 
-    FP = FP_stack[SP];
+        if (FP_stack[SP] != 0)
+        {
+            FP = FP_stack[SP];
+            FP_stack[SP] = 0;
+        }
+    }
 }
 
 //func 내부는 자유롭게 추가해도 괜찮으나, 아래의 구조를 바꾸지는 마세요
@@ -138,7 +143,7 @@ void func1(int arg1, int arg2, int arg3)
     func2(11, 13);
 
     // func2의 스택 프레임 제거 (함수 에필로그 + pop)
-    pop(sizeof(args) / sizeof(int), sizeof(locals) / sizeof(int));
+    pop(2, 1);
 
     print_stack();
 }
@@ -160,7 +165,7 @@ void func2(int arg1, int arg2)
     func3(77);
 
     // func3의 스택 프레임 제거 (함수 에필로그 + pop)
-    pop(sizeof(args) / sizeof(int), sizeof(locals) / sizeof(int));
+    pop(1, 2);
 
     print_stack();
 }
@@ -189,7 +194,9 @@ void func3(int arg1)
 int main()
 {
     func1(1, 2, 3);
+
     // func1의 스택 프레임 제거 (함수 에필로그 + pop)
+    pop(3,1);
     print_stack();
     return 0;
 }
