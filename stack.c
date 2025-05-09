@@ -81,26 +81,26 @@ void push(int* args, char** arg_names, int arg_size, int* locals, char** local_n
 {
     for (int i = arg_size - 1; i >= 0; i--)
     {
+        SP++;
         call_stack[SP] = args[i];
         strcpy(stack_info[SP], arg_names[i]);
-        SP++;
     }
 
+    SP++;
     call_stack[SP] = -1;
     strcpy(stack_info[SP], "Return address");
-    SP++;
 
+    SP++;
     call_stack[SP] = -1;
     sprintf(stack_info[SP], "%s SFP", func_name);
     FP_stack[SP] = FP;
     FP = SP;
-    SP++;
 
     for (int j = 0; j < local_size; j++)
     {
+        SP++;
         call_stack[SP] = locals[j];
         strcpy(stack_info[SP], local_names[j]);
-        SP++;
     }
 
 
@@ -113,9 +113,9 @@ void pop(int arg_size, int local_size)
 
     for (int k = 0; k < total_pop; k++)
     {
-        SP--;
         call_stack[SP] = -1;
         strcpy(stack_info[SP], "");
+        SP--;
     }
 
     FP = FP_stack[SP];
